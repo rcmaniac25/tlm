@@ -1,0 +1,4 @@
+github.com/DataDog/datadog-go/v5 v5.1.0 h1:Zmq3tCk9+Tdq8Du73M71Zo6Dyx+cEo9QkCSCqQlHFaQ=
+github.com/DataDog/datadog-go/v5 v5.1.0/go.mod h1:KhiYb2Badlv9/rofz+OznKoEF5XKTonWyhx5K83AP8E=
+github.com/Sirupsen/logrus v1.8.1 h1:9Kb5eF3ggHzzQCCk15IsQy3yZXuoOZDmEhDeaXv5p3E=
+github.com/Sirupsen/logrus v1.8.1/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
