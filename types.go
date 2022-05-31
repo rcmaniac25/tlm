@@ -1,27 +1,11 @@
 package tlm
 
-// LogType
-type LogType int
+import "github.com/rcmaniac25/tlm/logging"
 
-const (
-	Logrus LogType = iota
-)
-
-func (t LogType) String() string {
-	//TODO: expand
-	if t != Logrus {
-		return "unknown"
-	}
-
-	return "Logrus"
-}
-
-// TLMLoggingInitialization
-type TLMLoggingInitialization struct {
-	Type LogType
-}
-
-// TLMInitialization
 type TLMInitialization struct {
-	Logging *TLMLoggingInitialization
+	Logging *logging.TLMLoggingInitialization
+}
+
+type TLMBreakdown struct {
+	Log *logging.Logger
 }

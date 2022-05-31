@@ -1,10 +1,7 @@
-module github.com/rcmaniac25/go-ltm
+module github.com/rcmaniac25/tlm
 
 go 1.18
 
-require (
-	github.com/DataDog/datadog-go/v5 v5.1.0 // indirect
-	github.com/Sirupsen/logrus v1.8.1 // indirect
-	github.com/opentracing/opentracing-go v1.6.0 // indirect
-	github.com/uber-go/zap v1.21.0 // indirect
-)
+require github.com/sirupsen/logrus v1.8.1
+
+require golang.org/x/sys v0.0.0-20191026070338-33540a1f6037 // indirect
