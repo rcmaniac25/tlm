@@ -1,6 +1,5 @@
 package logging
 
-// LogType
 type LogType int
 
 const (
@@ -20,6 +19,13 @@ type TLMLoggingInitialization struct {
 	Type LogType
 }
 
-type Logger struct {
-	Impl interface{} //TODO
+type Logger interface {
+	Info(msg string)
 }
+
+//TODO: probably move this to it's own file
+type nullLoggerType struct{}
+
+var NullLogger = nullLoggerType{}
+
+func (n *nullLoggerType) Info(msg string) {}

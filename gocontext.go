@@ -6,9 +6,13 @@ type breakdownKey struct{}
 
 var contextBreakdownKey = breakdownKey{}
 
-func Breakdown(ctx context.Context) TLMBreakdown {
+func contextBreakdown(ctx context.Context) (TLMBreakdown, bool) {
 	value := ctx.Value(contextBreakdownKey)
-	if breakdown, ok := value.(TLMBreakdown); ok {
+	breakdown, ok := value.(TLMBreakdown)
+	return breakdown, ok
+}
+func Breakdown(ctx context.Context) TLMBreakdown {
+	if breakdown, ok := contextBreakdown(ctx); ok {
 		return breakdown
 	}
 	return TLMBreakdown{}
