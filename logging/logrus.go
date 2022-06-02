@@ -7,9 +7,12 @@ type LogrusImpl struct {
 }
 
 func InitLogrus(args *TLMLoggingInitialization) (Logger, error) {
-	var logger Logger
-	logger = &LogrusImpl{
+	logger := &LogrusImpl{
 		LR: logrus.New(),
+	}
+
+	if args.Output != nil {
+		logger.LR.SetOutput(args.Output)
 	}
 
 	//TODO

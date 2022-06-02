@@ -1,5 +1,7 @@
 package logging
 
+import "io"
+
 type CustomeLoggerInitializationFunc func(args *TLMLoggingInitialization) (Logger, error)
 
 type LogType int
@@ -25,6 +27,8 @@ type TLMLoggingInitialization struct {
 	Type LogType
 	// Only used when Type is Custom
 	CustomeType string
+
+	Output io.Writer
 }
 
 type Logger interface {
