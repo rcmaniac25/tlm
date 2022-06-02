@@ -5,9 +5,7 @@ import (
 	"fmt"
 )
 
-var registeredLoggers = make(map[string]CustomeLoggerInitializationFunc)
-
-func InitLogging(args *TLMLoggingInitialization) (Logger, error) {
+func InitLogging(args *TLMLoggingInitialization) (TLMLogger, error) {
 	if args == nil {
 		// If no logging info, then no need to process
 		return nil, nil
@@ -35,8 +33,16 @@ func InitLogging(args *TLMLoggingInitialization) (Logger, error) {
 	default:
 		return nil, fmt.Errorf("unknown logging type: %v", args.Type)
 	}
-	return log, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &selfReferentialLogger{
+		LoggerImpl: log,
+	}, nil
 }
+
+var registeredLoggers = make(map[string]CustomeLoggerInitializationFunc)
 
 func RegisterLogger(typeName string, loggerInit CustomeLoggerInitializationFunc) error {
 	if len(typeName) == 0 {

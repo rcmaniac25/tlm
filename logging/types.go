@@ -1,6 +1,9 @@
 package logging
 
-import "io"
+import (
+	"context"
+	"io"
+)
 
 type CustomeLoggerInitializationFunc func(args *TLMLoggingInitialization) (Logger, error)
 
@@ -35,9 +38,8 @@ type Logger interface {
 	Info(msg string)
 }
 
-//TODO: probably move this to it's own file
-type nullLoggerType struct{}
+type TLMLogger interface {
+	Logger
 
-var NullLogger = nullLoggerType{}
-
-func (n *nullLoggerType) Info(msg string) {}
+	Context() context.Context
+}

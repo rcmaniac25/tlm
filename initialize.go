@@ -4,19 +4,23 @@ import (
 	"context"
 	"errors"
 
-	log "github.com/rcmaniac25/tlm/logging"
+	"github.com/rcmaniac25/tlm/logging"
 )
 
-func Startup(init *TLMInitialization) (context.Context, error) {
-	if init == nil {
-		return context.Background(), errors.New("initialization values cannot be nil")
+func Startup(args *TLMInitialization) (context.Context, error) {
+	return StartupContext(context.Background(), args)
+}
+
+func StartupContext(ctx context.Context, args *TLMInitialization) (context.Context, error) {
+	if args == nil {
+		return context.Background(), errors.New("args cannot be nil")
 	}
 
 	var breakdown TLMBreakdown
 
 	//TODO: tracing
 
-	logger, err := log.InitLogging(init.Logging)
+	logger, err := logging.InitLogging(args.Logging)
 	if err != nil {
 		return context.Background(), err
 	}
@@ -24,5 +28,10 @@ func Startup(init *TLMInitialization) (context.Context, error) {
 
 	//TODO: metrics
 
-	return contextWithStruct(context.Background(), breakdown), nil
+	tlmCtx := contextWithStruct(ctx, breakdown)
+	if breakdown.Log != nil {
+		logging.SetTLMLoggerContext(breakdown.Log, tlmCtx)
+	}
+
+	return tlmCtx, nil
 }

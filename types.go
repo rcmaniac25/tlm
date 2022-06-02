@@ -7,5 +7,5 @@ type TLMInitialization struct {
 }
 
 type TLMBreakdown struct {
-	Log logging.Logger
+	Log logging.TLMLogger
 }
