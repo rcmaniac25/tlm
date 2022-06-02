@@ -19,7 +19,7 @@ TODO...
 
 - [Logrus](https://github.com/Sirupsen/logrus)
 - [ZAP](https://github.com/uber-go/zap) (Eventually)
-- More??
+- Custom... for when you want to write an abstraction for a logger to register with logging mapper. Be sure to register the logger initialization function with `logging/RegisterLogger`
 
 ### Metrics
 
