@@ -63,8 +63,9 @@ type TLMLoggingInitialization struct {
 	// Only used when Type is Custom
 	CustomeType string
 
-	Output io.Writer
-	Level  LogLevel
+	Output    io.Writer
+	Level     LogLevel
+	Formatter Formatter
 }
 
 type Logger interface {
