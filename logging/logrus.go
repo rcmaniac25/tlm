@@ -15,9 +15,31 @@ func InitLogrus(args *TLMLoggingInitialization) (Logger, error) {
 		logger.LR.SetOutput(args.Output)
 	}
 
+	if level, ok := convertLogLevel(args.Level); ok {
+		logger.LR.SetLevel(level)
+	}
+
 	//TODO
 
 	return logger, nil
+}
+
+func convertLogLevel(level LogLevel) (logrus.Level, bool) {
+	switch level {
+	case Debug:
+		return logrus.DebugLevel, true
+	case Info:
+		return logrus.InfoLevel, true
+	case Warn:
+		return logrus.WarnLevel, true
+	case Error:
+		return logrus.ErrorLevel, true
+	case Panic:
+		return logrus.PanicLevel, true
+	case Fatal:
+		return logrus.FatalLevel, true
+	}
+	return logrus.InfoLevel, false
 }
 
 func (r *LogrusImpl) Debugf(format string, args ...any) {

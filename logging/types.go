@@ -26,12 +26,45 @@ func (t LogType) String() string {
 	return "unknown"
 }
 
+type LogLevel int
+
+const (
+	// Default log level is logger specific
+	Default LogLevel = iota
+
+	Debug
+	Info
+	Warn
+	Error
+	Panic
+	Fatal
+)
+
+func (t LogLevel) String() string {
+	switch t {
+	case Debug:
+		return "debug"
+	case Info:
+		return "info"
+	case Warn:
+		return "warn"
+	case Error:
+		return "error"
+	case Panic:
+		return "panic"
+	case Fatal:
+		return "fatal"
+	}
+	return ""
+}
+
 type TLMLoggingInitialization struct {
 	Type LogType
 	// Only used when Type is Custom
 	CustomeType string
 
 	Output io.Writer
+	Level  LogLevel
 }
 
 type Logger interface {
