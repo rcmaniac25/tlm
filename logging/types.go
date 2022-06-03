@@ -35,7 +35,26 @@ type TLMLoggingInitialization struct {
 }
 
 type Logger interface {
-	Info(msg string)
+	Debugf(format string, args ...any)
+	Infof(format string, args ...any)
+	Warnf(format string, args ...any)
+	Errorf(format string, args ...any)
+	Panicf(format string, args ...any)
+	Fatalf(format string, args ...any)
+
+	Debug(args ...any)
+	Info(args ...any)
+	Warn(args ...any)
+	Error(args ...any)
+	Panic(args ...any)
+	Fatal(args ...any)
+
+	Debugln(args ...any)
+	Infoln(args ...any)
+	Warnln(args ...any)
+	Errorln(args ...any)
+	Panicln(args ...any)
+	Fatalln(args ...any)
 }
 
 type TLMLogger interface {

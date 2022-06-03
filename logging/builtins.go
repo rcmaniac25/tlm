@@ -32,7 +32,80 @@ func (s *selfReferentialLogger) Context() context.Context {
 
 // All the builtin functions
 
-func (n *nullLoggerType) Info(msg string) {}
-func (s *selfReferentialLogger) Info(msg string) {
-	s.LoggerImpl.Info(msg)
+func (n *nullLoggerType) Debugf(format string, args ...any) {}
+func (n *nullLoggerType) Debug(args ...any)                 {}
+func (n *nullLoggerType) Debugln(args ...any)               {}
+func (s *selfReferentialLogger) Debugf(format string, args ...any) {
+	s.LoggerImpl.Debugf(format, args...)
+}
+func (s *selfReferentialLogger) Debug(args ...any) {
+	s.LoggerImpl.Debug(args...)
+}
+func (s *selfReferentialLogger) Debugln(args ...any) {
+	s.LoggerImpl.Debugln(args...)
+}
+
+func (n *nullLoggerType) Infof(format string, args ...any) {}
+func (n *nullLoggerType) Info(args ...any)                 {}
+func (n *nullLoggerType) Infoln(args ...any)               {}
+func (s *selfReferentialLogger) Infof(format string, args ...any) {
+	s.LoggerImpl.Infof(format, args...)
+}
+func (s *selfReferentialLogger) Info(args ...any) {
+	s.LoggerImpl.Info(args...)
+}
+func (s *selfReferentialLogger) Infoln(args ...any) {
+	s.LoggerImpl.Infoln(args...)
+}
+
+func (n *nullLoggerType) Warnf(format string, args ...any) {}
+func (n *nullLoggerType) Warn(args ...any)                 {}
+func (n *nullLoggerType) Warnln(args ...any)               {}
+func (s *selfReferentialLogger) Warnf(format string, args ...any) {
+	s.LoggerImpl.Warnf(format, args...)
+}
+func (s *selfReferentialLogger) Warn(args ...any) {
+	s.LoggerImpl.Warn(args...)
+}
+func (s *selfReferentialLogger) Warnln(args ...any) {
+	s.LoggerImpl.Warnln(args...)
+}
+
+func (n *nullLoggerType) Errorf(format string, args ...any) {}
+func (n *nullLoggerType) Error(args ...any)                 {}
+func (n *nullLoggerType) Errorln(args ...any)               {}
+func (s *selfReferentialLogger) Errorf(format string, args ...any) {
+	s.LoggerImpl.Errorf(format, args...)
+}
+func (s *selfReferentialLogger) Error(args ...any) {
+	s.LoggerImpl.Error(args...)
+}
+func (s *selfReferentialLogger) Errorln(args ...any) {
+	s.LoggerImpl.Errorln(args...)
+}
+
+func (n *nullLoggerType) Panicf(format string, args ...any) {}
+func (n *nullLoggerType) Panic(args ...any)                 {}
+func (n *nullLoggerType) Panicln(args ...any)               {}
+func (s *selfReferentialLogger) Panicf(format string, args ...any) {
+	s.LoggerImpl.Panicf(format, args...)
+}
+func (s *selfReferentialLogger) Panic(args ...any) {
+	s.LoggerImpl.Panic(args...)
+}
+func (s *selfReferentialLogger) Panicln(args ...any) {
+	s.LoggerImpl.Panicln(args...)
+}
+
+func (n *nullLoggerType) Fatalf(format string, args ...any) {}
+func (n *nullLoggerType) Fatal(args ...any)                 {}
+func (n *nullLoggerType) Fatalln(args ...any)               {}
+func (s *selfReferentialLogger) Fatalf(format string, args ...any) {
+	s.LoggerImpl.Fatalf(format, args...)
+}
+func (s *selfReferentialLogger) Fatal(args ...any) {
+	s.LoggerImpl.Fatal(args...)
+}
+func (s *selfReferentialLogger) Fatalln(args ...any) {
+	s.LoggerImpl.Fatalln(args...)
 }
