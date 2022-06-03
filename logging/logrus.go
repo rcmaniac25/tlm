@@ -26,17 +26,17 @@ func InitLogrus(args *TLMLoggingInitialization) (Logger, error) {
 
 func convertLogLevel(level LogLevel) (logrus.Level, bool) {
 	switch level {
-	case Debug:
+	case DebugLevel:
 		return logrus.DebugLevel, true
-	case Info:
+	case InfoLevel:
 		return logrus.InfoLevel, true
-	case Warn:
+	case WarnLevel:
 		return logrus.WarnLevel, true
-	case Error:
+	case ErrorLevel:
 		return logrus.ErrorLevel, true
-	case Panic:
+	case PanicLevel:
 		return logrus.PanicLevel, true
-	case Fatal:
+	case FatalLevel:
 		return logrus.FatalLevel, true
 	}
 	return logrus.InfoLevel, false

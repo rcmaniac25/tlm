@@ -19,7 +19,7 @@ func InitLogging(args *TLMLoggingInitialization) (TLMLogger, error) {
 	var err error
 
 	switch args.Type {
-	case Custom:
+	case CustomLogType:
 		if len(args.CustomeType) == 0 {
 			return nil, errors.New("type 'Custom' requires 'CustomeType' to be set")
 		}
@@ -28,7 +28,7 @@ func InitLogging(args *TLMLoggingInitialization) (TLMLogger, error) {
 		} else {
 			err = fmt.Errorf("custom type could is not registered: %s", args.CustomeType)
 		}
-	case Logrus:
+	case LogrusLogType:
 		log, err = InitLogrus(args)
 	default:
 		return nil, fmt.Errorf("unknown logging type: %v", args.Type)

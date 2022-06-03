@@ -11,16 +11,16 @@ type LogType int
 
 const (
 	// Requires setting CustomeType during initialization
-	Custom LogType = iota
+	CustomLogType LogType = iota
 
-	Logrus
+	LogrusLogType
 )
 
 func (t LogType) String() string {
 	switch t {
-	case Custom:
+	case CustomLogType:
 		return "Custom"
-	case Logrus:
+	case LogrusLogType:
 		return "Logrus"
 	}
 	return "unknown"
@@ -30,29 +30,29 @@ type LogLevel int
 
 const (
 	// Default log level is logger specific
-	Default LogLevel = iota
+	DefaultLevel LogLevel = iota
 
-	Debug
-	Info
-	Warn
-	Error
-	Panic
-	Fatal
+	DebugLevel
+	InfoLevel
+	WarnLevel
+	ErrorLevel
+	PanicLevel
+	FatalLevel
 )
 
 func (t LogLevel) String() string {
 	switch t {
-	case Debug:
+	case DebugLevel:
 		return "debug"
-	case Info:
+	case InfoLevel:
 		return "info"
-	case Warn:
+	case WarnLevel:
 		return "warn"
-	case Error:
+	case ErrorLevel:
 		return "error"
-	case Panic:
+	case PanicLevel:
 		return "panic"
-	case Fatal:
+	case FatalLevel:
 		return "fatal"
 	}
 	return ""
