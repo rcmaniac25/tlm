@@ -2,7 +2,6 @@ package logging
 
 import (
 	"context"
-	"errors"
 )
 
 type nullLoggerType struct{}
@@ -17,13 +16,8 @@ type selfReferentialLogger struct {
 	LoggerImpl Logger
 }
 
-// Not a selfReferentialLogger func on purpose, because it won't be known until exported
-func SetTLMLoggerContext(logger TLMLogger, ctx context.Context) error {
-	if selfRefLogger, ok := logger.(*selfReferentialLogger); ok {
-		selfRefLogger.TLMContext = ctx
-		return nil
-	}
-	return errors.New("unsupported logger")
+func (s *selfReferentialLogger) SetContext(ctx context.Context) {
+	s.TLMContext = ctx
 }
 
 func (s *selfReferentialLogger) Context() context.Context {

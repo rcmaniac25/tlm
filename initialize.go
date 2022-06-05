@@ -29,8 +29,16 @@ func StartupContext(ctx context.Context, args *TLMInitialization) (context.Conte
 	//TODO: metrics
 
 	tlmCtx := contextWithStruct(ctx, breakdown)
+
+	type setContext interface {
+		SetContext(ctx context.Context)
+	}
 	if breakdown.Log != nil {
-		logging.SetTLMLoggerContext(breakdown.Log, tlmCtx)
+		if setCtx, ok := breakdown.Log.(setContext); ok {
+			setCtx.SetContext(tlmCtx)
+		} else {
+			return nil, errors.New("internal error: unknown logger")
+		}
 	}
 
 	return tlmCtx, nil
