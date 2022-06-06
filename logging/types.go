@@ -66,6 +66,8 @@ type TLMLoggingInitialization struct {
 	Output    io.Writer
 	Level     LogLevel
 	Formatter Formatter
+
+	//TODO: logger specific variables
 }
 
 type Logger interface {
@@ -89,6 +91,12 @@ type Logger interface {
 	Errorln(args ...any)
 	Panicln(args ...any)
 	Fatalln(args ...any)
+
+	//TODO: (TLMLogger will invoke Logger but then return a TLMLogger with the new Logger)
+	//TODO: WithField
+	//TODO: WithFields
+
+	//TODO: PanicOnlyDebugMode
 }
 
 type TLMLogger interface {

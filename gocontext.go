@@ -9,6 +9,9 @@ var contextBreakdownKey = breakdownKey{}
 func contextBreakdown(ctx context.Context) (TLMBreakdown, bool) {
 	value := ctx.Value(contextBreakdownKey)
 	breakdown, ok := value.(TLMBreakdown)
+	if ok {
+		breakdown.Ctx = ctx
+	}
 	return breakdown, ok
 }
 func Breakdown(ctx context.Context) TLMBreakdown {
