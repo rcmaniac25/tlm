@@ -19,6 +19,10 @@ func InitLogrus(args *TLMLoggingInitialization) (Logger, error) {
 		logger.LR.SetLevel(level)
 	}
 
+	if formatter, ok := getFormatter(args.Formatter, logger.LR.Formatter); ok {
+		logger.LR.Formatter = formatter
+	}
+
 	//TODO
 
 	return logger, nil
@@ -42,6 +46,88 @@ func convertLogLevel(level LogLevel) (logrus.Level, bool) {
 	return logrus.InfoLevel, false
 }
 
+// Formatting
+func getFormatter(formatterArgs Formatter, def logrus.Formatter) (logrus.Formatter, bool) {
+	switch formatterArgs.Type {
+	case TextFormat:
+		return getTextFormatter(formatterArgs, nil), true
+	case JsonFormat:
+		return getJsonFormatter(formatterArgs, nil), true
+	case DefaultFormat:
+		if text, ok := def.(*logrus.TextFormatter); ok {
+			return getTextFormatter(formatterArgs, text), true
+		}
+		if json, ok := def.(*logrus.JSONFormatter); ok {
+			return getJsonFormatter(formatterArgs, json), true
+		}
+	}
+	return nil, false
+}
+
+func getTextFormatter(formatterArgs Formatter, form *logrus.TextFormatter) logrus.Formatter {
+	if form == nil {
+		form = new(logrus.TextFormatter)
+	}
+	form.FieldMap = setFormatterFieldMap(formatterArgs)
+	if formatterArgs.TimeKey == "-" {
+		form.DisableTimestamp = true
+	}
+	form.TimestampFormat = formatterArgs.TimeFormat
+	return form
+}
+
+func getJsonFormatter(formatterArgs Formatter, form *logrus.JSONFormatter) logrus.Formatter {
+	if form == nil {
+		form = new(logrus.JSONFormatter)
+	}
+	form.FieldMap = setFormatterFieldMap(formatterArgs)
+	if formatterArgs.TimeKey == "-" {
+		form.DisableTimestamp = true
+	}
+	form.TimestampFormat = formatterArgs.TimeFormat
+	return form
+}
+
+func setFormatterFieldMap(formatterArgs Formatter) logrus.FieldMap {
+	fieldMap := make(logrus.FieldMap)
+
+	switch formatterArgs.TimeKey {
+	// "-" will skip the time and is handled outside of this function
+	case "~":
+		fieldMap[logrus.FieldKeyTime] = "Time"
+	case "":
+	default:
+		fieldMap[logrus.FieldKeyTime] = formatterArgs.TimeKey
+	}
+
+	switch formatterArgs.MessageKey {
+	case "~":
+		fieldMap[logrus.FieldKeyMsg] = "Message"
+	case "":
+	default:
+		fieldMap[logrus.FieldKeyMsg] = formatterArgs.MessageKey
+	}
+
+	switch formatterArgs.LevelKey {
+	case "~":
+		fieldMap[logrus.FieldKeyLevel] = "Level"
+	case "":
+	default:
+		fieldMap[logrus.FieldKeyLevel] = formatterArgs.LevelKey
+	}
+
+	switch formatterArgs.FunctionKey {
+	case "~":
+		fieldMap[logrus.FieldKeyFunc] = "Function"
+	case "":
+	default:
+		fieldMap[logrus.FieldKeyFunc] = formatterArgs.FunctionKey
+	}
+
+	return fieldMap
+}
+
+// Logging function calls
 func (r *LogrusImpl) Debugf(format string, args ...any) {
 	r.LR.Debugf(format, args...)
 }
