@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/rcmaniac25/tlm/logging"
+	"github.com/rcmaniac25/tlm/util"
 )
 
 func Startup(args *TLMInitialization) (context.Context, error) {
@@ -28,18 +29,30 @@ func StartupContext(ctx context.Context, args *TLMInitialization) (context.Conte
 
 	//TODO: metrics
 
-	tlmCtx := contextWithStruct(ctx, breakdown)
+	/* Result is effectivly:
+	ContextWrapper {
+		context.Context {
+			TLMBreakdown {
+				...
+				context.Context // set when getting the breakdown value out of the context
+			}
+		}
+	}
+	*/
+	tlmCtxWrapper := tlmBreakdownContextWrapper{
+		Ctx: contextWithStruct(ctx, breakdown),
+	}
 
 	type setContext interface {
-		SetContext(ctx context.Context)
+		SetContextWrapper(ctx util.ContextWrapper)
 	}
 	if breakdown.Log != nil {
 		if setCtx, ok := breakdown.Log.(setContext); ok {
-			setCtx.SetContext(tlmCtx)
+			setCtx.SetContextWrapper(tlmCtxWrapper)
 		} else {
 			return nil, errors.New("internal error: unknown logger")
 		}
 	}
 
-	return tlmCtx, nil
+	return tlmCtxWrapper.GetContext(), nil
 }

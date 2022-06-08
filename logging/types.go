@@ -92,11 +92,10 @@ type Logger interface {
 	Panicln(args ...any)
 	Fatalln(args ...any)
 
-	//TODO: (TLMLogger will invoke Logger but then return a TLMLogger with the new Logger)
-	//TODO: WithField
+	WithField(key string, value any) Logger
 	//TODO: WithFields
 
-	//TODO: PanicOnlyDebugMode
+	//TODO: PanicOnlyDebugMode //XXX don't actually implement this. This should be a value passed into WithField(s) and if
 }
 
 type TLMLogger interface {

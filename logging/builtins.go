@@ -2,6 +2,8 @@ package logging
 
 import (
 	"context"
+
+	"github.com/rcmaniac25/tlm/util"
 )
 
 type nullLoggerType struct{}
@@ -12,19 +14,43 @@ var NullLogger = nullLoggerType{}
 // In order to do that, we need access to TLM's breakdown... which is stored in the context.
 // So we need to store the context that contains the logger, in the logger
 type selfReferentialLogger struct {
-	TLMContext context.Context
+	TLMContext util.ContextWrapper
 	LoggerImpl Logger
 }
 
-func (s *selfReferentialLogger) SetContext(ctx context.Context) {
+func (s *selfReferentialLogger) SetContextWrapper(ctx util.ContextWrapper) {
 	s.TLMContext = ctx
 }
 
 func (s *selfReferentialLogger) Context() context.Context {
-	return s.TLMContext
+	return s.TLMContext.GetContext()
+}
+
+func (s *selfReferentialLogger) updateLogger(update func() Logger) Logger {
+	type UpdateLogger interface {
+		UpdateLogger(logger TLMLogger) util.ContextWrapper
+	}
+
+	refLogger := &selfReferentialLogger{
+		LoggerImpl: update(),
+	}
+	if updateLogger, ok := s.TLMContext.(UpdateLogger); ok {
+		refLogger.TLMContext = updateLogger.UpdateLogger(refLogger)
+		return refLogger
+	}
+	return s // Simply ignore the field since we got an invalid type...
 }
 
 // All the builtin functions
+
+func (n *nullLoggerType) WithField(key string, value any) Logger {
+	return n
+}
+func (s *selfReferentialLogger) WithField(key string, value any) Logger {
+	return s.updateLogger(func() Logger {
+		return s.LoggerImpl.WithField(key, value)
+	})
+}
 
 func (n *nullLoggerType) Debugf(format string, args ...any) {}
 func (n *nullLoggerType) Debug(args ...any)                 {}

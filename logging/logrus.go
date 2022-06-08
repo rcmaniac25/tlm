@@ -3,24 +3,25 @@ package logging
 import "github.com/sirupsen/logrus"
 
 type LogrusImpl struct {
-	LR *logrus.Logger
+	Log   *logrus.Logger
+	Entry *logrus.Entry
 }
 
 func InitLogrus(args *TLMLoggingInitialization) (Logger, error) {
 	logger := &LogrusImpl{
-		LR: logrus.New(),
+		Log: logrus.New(),
 	}
 
 	if args.Output != nil {
-		logger.LR.SetOutput(args.Output)
+		logger.Log.SetOutput(args.Output)
 	}
 
 	if level, ok := convertLogLevel(args.Level); ok {
-		logger.LR.SetLevel(level)
+		logger.Log.SetLevel(level)
 	}
 
-	if formatter, ok := getFormatter(args.Formatter, logger.LR.Formatter); ok {
-		logger.LR.Formatter = formatter
+	if formatter, ok := getFormatter(args.Formatter, logger.Log.Formatter); ok {
+		logger.Log.Formatter = formatter
 	}
 
 	//TODO
@@ -127,63 +128,143 @@ func setFormatterFieldMap(formatterArgs Formatter) logrus.FieldMap {
 	return fieldMap
 }
 
+// Fields
+func (r *LogrusImpl) WithField(key string, value any) Logger {
+	if r.Entry != nil {
+		return &LogrusImpl{Entry: r.Entry.WithField(key, value)}
+	}
+	return &LogrusImpl{Entry: r.Log.WithField(key, value)}
+}
+
 // Logging function calls
 func (r *LogrusImpl) Debugf(format string, args ...any) {
-	r.LR.Debugf(format, args...)
+	if r.Entry != nil {
+		r.Entry.Debugf(format, args...)
+		return
+	}
+	r.Log.Debugf(format, args...)
 }
 func (r *LogrusImpl) Debug(args ...any) {
-	r.LR.Debug(args...)
+	if r.Entry != nil {
+		r.Entry.Debug(args...)
+		return
+	}
+	r.Log.Debug(args...)
 }
 func (r *LogrusImpl) Debugln(args ...any) {
-	r.LR.Debugln(args...)
+	if r.Entry != nil {
+		r.Entry.Debugln(args...)
+		return
+	}
+	r.Log.Debugln(args...)
 }
 
 func (r *LogrusImpl) Infof(format string, args ...any) {
-	r.LR.Infof(format, args...)
+	if r.Entry != nil {
+		r.Entry.Infof(format, args...)
+		return
+	}
+	r.Log.Infof(format, args...)
 }
 func (r *LogrusImpl) Info(args ...any) {
-	r.LR.Info(args...)
+	if r.Entry != nil {
+		r.Entry.Info(args...)
+		return
+	}
+	r.Log.Info(args...)
 }
 func (r *LogrusImpl) Infoln(args ...any) {
-	r.LR.Infoln(args...)
+	if r.Entry != nil {
+		r.Entry.Infoln(args...)
+		return
+	}
+	r.Log.Infoln(args...)
 }
 
 func (r *LogrusImpl) Warnf(format string, args ...any) {
-	r.LR.Warnf(format, args...)
+	if r.Entry != nil {
+		r.Entry.Warnf(format, args...)
+		return
+	}
+	r.Log.Warnf(format, args...)
 }
 func (r *LogrusImpl) Warn(args ...any) {
-	r.LR.Warn(args...)
+	if r.Entry != nil {
+		r.Entry.Warn(args...)
+		return
+	}
+	r.Log.Warn(args...)
 }
 func (r *LogrusImpl) Warnln(args ...any) {
-	r.LR.Warnln(args...)
+	if r.Entry != nil {
+		r.Entry.Warnln(args...)
+		return
+	}
+	r.Log.Warnln(args...)
 }
 
 func (r *LogrusImpl) Errorf(format string, args ...any) {
-	r.LR.Errorf(format, args...)
+	if r.Entry != nil {
+		r.Entry.Errorf(format, args...)
+		return
+	}
+	r.Log.Errorf(format, args...)
 }
 func (r *LogrusImpl) Error(args ...any) {
-	r.LR.Error(args...)
+	if r.Entry != nil {
+		r.Entry.Error(args...)
+		return
+	}
+	r.Log.Error(args...)
 }
 func (r *LogrusImpl) Errorln(args ...any) {
-	r.LR.Errorln(args...)
+	if r.Entry != nil {
+		r.Entry.Errorln(args...)
+		return
+	}
+	r.Log.Errorln(args...)
 }
 
 func (r *LogrusImpl) Panicf(format string, args ...any) {
-	r.LR.Panicf(format, args...)
+	if r.Entry != nil {
+		r.Entry.Panicf(format, args...)
+		return
+	}
+	r.Log.Panicf(format, args...)
 }
 func (r *LogrusImpl) Panic(args ...any) {
-	r.LR.Panic(args...)
+	if r.Entry != nil {
+		r.Entry.Panic(args...)
+		return
+	}
+	r.Log.Panic(args...)
 }
 func (r *LogrusImpl) Panicln(args ...any) {
-	r.LR.Panicln(args...)
+	if r.Entry != nil {
+		r.Entry.Panicln(args...)
+		return
+	}
+	r.Log.Panicln(args...)
 }
 
 func (r *LogrusImpl) Fatalf(format string, args ...any) {
-	r.LR.Fatalf(format, args...)
+	if r.Entry != nil {
+		r.Entry.Fatalf(format, args...)
+		return
+	}
+	r.Log.Fatalf(format, args...)
 }
 func (r *LogrusImpl) Fatal(args ...any) {
-	r.LR.Fatal(args...)
+	if r.Entry != nil {
+		r.Entry.Fatal(args...)
+		return
+	}
+	r.Log.Fatal(args...)
 }
 func (r *LogrusImpl) Fatalln(args ...any) {
-	r.LR.Fatalln(args...)
+	if r.Entry != nil {
+		r.Entry.Fatalln(args...)
+		return
+	}
+	r.Log.Fatalln(args...)
 }
