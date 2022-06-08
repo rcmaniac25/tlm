@@ -52,6 +52,15 @@ func (s *selfReferentialLogger) WithField(key string, value any) Logger {
 	})
 }
 
+func (n *nullLoggerType) WithFields(fields util.Fields) Logger {
+	return n
+}
+func (s *selfReferentialLogger) WithFields(fields util.Fields) Logger {
+	return s.updateLogger(func() Logger {
+		return s.LoggerImpl.WithFields(fields)
+	})
+}
+
 func (n *nullLoggerType) Debugf(format string, args ...any) {}
 func (n *nullLoggerType) Debug(args ...any)                 {}
 func (n *nullLoggerType) Debugln(args ...any)               {}

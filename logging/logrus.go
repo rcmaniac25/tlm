@@ -1,6 +1,10 @@
 package logging
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/rcmaniac25/tlm/util"
+
+	"github.com/sirupsen/logrus"
+)
 
 type LogrusImpl struct {
 	Log   *logrus.Logger
@@ -134,6 +138,17 @@ func (r *LogrusImpl) WithField(key string, value any) Logger {
 		return &LogrusImpl{Entry: r.Entry.WithField(key, value)}
 	}
 	return &LogrusImpl{Entry: r.Log.WithField(key, value)}
+}
+
+func (r *LogrusImpl) WithFields(fields util.Fields) Logger {
+	logFields := make(logrus.Fields)
+	for key, value := range fields {
+		logFields[key] = value
+	}
+	if r.Entry != nil {
+		return &LogrusImpl{Entry: r.Entry.WithFields(logFields)}
+	}
+	return &LogrusImpl{Entry: r.Log.WithFields(logFields)}
 }
 
 // Logging function calls

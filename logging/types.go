@@ -3,6 +3,8 @@ package logging
 import (
 	"context"
 	"io"
+
+	"github.com/rcmaniac25/tlm/util"
 )
 
 type CustomeLoggerInitializationFunc func(args *TLMLoggingInitialization) (Logger, error)
@@ -93,7 +95,7 @@ type Logger interface {
 	Fatalln(args ...any)
 
 	WithField(key string, value any) Logger
-	//TODO: WithFields
+	WithFields(fields util.Fields) Logger
 
 	//TODO: PanicOnlyDebugMode //XXX don't actually implement this. This should be a value passed into WithField(s) and if
 }
