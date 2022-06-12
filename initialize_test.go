@@ -4,21 +4,36 @@ import (
 	"testing"
 
 	"github.com/rcmaniac25/tlm"
+	"github.com/rcmaniac25/tlm/logging"
 )
 
 func TestStartupNil(t *testing.T) {
 	_, err := tlm.Startup(nil)
 	if err == nil {
-		t.Fatalf("nil initialiation should should have caused error")
+		t.Fatal("nil initialization should have caused error")
+	}
+	if err.Error() != "args cannot be nil" {
+		t.Fatalf("Unexpected error message: %s", err.Error())
 	}
 }
 
 func TestStartupEmpty(t *testing.T) {
 	inits := new(tlm.TLMInitialization)
-	ctx, err := tlm.Startup(inits)
-	if err != nil {
-		//TODO: is this true?
-		t.Fatalf("empty initialiation should not cause failure")
+	_, err := tlm.Startup(inits)
+	if err == nil {
+		t.Fatal("empty initialization should have caused error")
 	}
-	tlm.Log(ctx).Info("Test") //TMP
+	if err.Error() != "initialization args empty" {
+		t.Fatalf("Unexpected error message: %s", err.Error())
+	}
+}
+
+func TestStartupEmptyLogging(t *testing.T) {
+	inits := new(tlm.TLMInitialization)
+	inits.Logging = new(logging.TLMLoggingInitialization)
+	_, err := tlm.Startup(inits)
+	if err == nil {
+		t.Fatal("empty logging initialization should have caused error")
+	}
+	// Error message and logging stuff will be handled by other tests
 }

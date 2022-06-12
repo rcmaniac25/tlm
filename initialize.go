@@ -29,6 +29,10 @@ func StartupContext(ctx context.Context, args *TLMInitialization) (context.Conte
 
 	//TODO: metrics
 
+	if logger == nil {
+		return context.Background(), errors.New("initialization args empty")
+	}
+
 	/* Result is effectivly:
 	ContextWrapper {
 		context.Context {
