@@ -55,47 +55,64 @@ func convertLogLevel(level LogLevel) (logrus.Level, bool) {
 func getFormatter(formatterArgs Formatter, def logrus.Formatter) (logrus.Formatter, bool) {
 	switch formatterArgs.Type {
 	case TextFormat:
-		return getTextFormatter(formatterArgs, nil), true
+		return getTextFormatter(formatterArgs, nil)
 	case JsonFormat:
-		return getJsonFormatter(formatterArgs, nil), true
+		return getJsonFormatter(formatterArgs, nil)
 	case DefaultFormat:
 		if text, ok := def.(*logrus.TextFormatter); ok {
-			return getTextFormatter(formatterArgs, text), true
+			return getTextFormatter(formatterArgs, text)
 		}
 		if json, ok := def.(*logrus.JSONFormatter); ok {
-			return getJsonFormatter(formatterArgs, json), true
+			return getJsonFormatter(formatterArgs, json)
 		}
 	}
 	return nil, false
 }
 
-func getTextFormatter(formatterArgs Formatter, form *logrus.TextFormatter) logrus.Formatter {
+func getTextFormatter(formatterArgs Formatter, form *logrus.TextFormatter) (logrus.Formatter, bool) {
+	dirty := false
 	if form == nil {
 		form = new(logrus.TextFormatter)
+		dirty = true
 	}
-	form.FieldMap = setFormatterFieldMap(formatterArgs)
-	if formatterArgs.TimeKey == "-" {
+	fields, fieldsDirty := setFormatterFieldMap(formatterArgs)
+	if fieldsDirty {
+		form.FieldMap = fields
+		dirty = true
+	}
+	if formatterArgs.TimeKey == "-" && !form.DisableTimestamp {
 		form.DisableTimestamp = true
+		dirty = true
 	}
+	dirty = dirty || (form.TimestampFormat != formatterArgs.TimeFormat)
 	form.TimestampFormat = formatterArgs.TimeFormat
-	return form
+	return form, dirty
 }
 
-func getJsonFormatter(formatterArgs Formatter, form *logrus.JSONFormatter) logrus.Formatter {
+func getJsonFormatter(formatterArgs Formatter, form *logrus.JSONFormatter) (logrus.Formatter, bool) {
+	dirty := false
 	if form == nil {
 		form = new(logrus.JSONFormatter)
+		dirty = true
 	}
-	form.FieldMap = setFormatterFieldMap(formatterArgs)
-	if formatterArgs.TimeKey == "-" {
+	fields, fieldsDirty := setFormatterFieldMap(formatterArgs)
+	if fieldsDirty {
+		form.FieldMap = fields
+		dirty = true
+	}
+	if formatterArgs.TimeKey == "-" && !form.DisableTimestamp {
 		form.DisableTimestamp = true
+		dirty = true
 	}
+	dirty = dirty || (form.TimestampFormat != formatterArgs.TimeFormat)
 	form.TimestampFormat = formatterArgs.TimeFormat
-	return form
+	return form, dirty
 }
 
-func setFormatterFieldMap(formatterArgs Formatter) logrus.FieldMap {
+func setFormatterFieldMap(formatterArgs Formatter) (logrus.FieldMap, bool) {
 	fieldMap := make(logrus.FieldMap)
 
+	dirty := formatterArgs.TimeKey != ""
 	switch formatterArgs.TimeKey {
 	// "-" will skip the time and is handled outside of this function
 	case "~":
@@ -105,6 +122,7 @@ func setFormatterFieldMap(formatterArgs Formatter) logrus.FieldMap {
 		fieldMap[logrus.FieldKeyTime] = formatterArgs.TimeKey
 	}
 
+	dirty = dirty || formatterArgs.MessageKey != ""
 	switch formatterArgs.MessageKey {
 	case "~":
 		fieldMap[logrus.FieldKeyMsg] = "Message"
@@ -113,6 +131,7 @@ func setFormatterFieldMap(formatterArgs Formatter) logrus.FieldMap {
 		fieldMap[logrus.FieldKeyMsg] = formatterArgs.MessageKey
 	}
 
+	dirty = dirty || formatterArgs.LevelKey != ""
 	switch formatterArgs.LevelKey {
 	case "~":
 		fieldMap[logrus.FieldKeyLevel] = "Level"
@@ -121,6 +140,7 @@ func setFormatterFieldMap(formatterArgs Formatter) logrus.FieldMap {
 		fieldMap[logrus.FieldKeyLevel] = formatterArgs.LevelKey
 	}
 
+	dirty = dirty || formatterArgs.FunctionKey != ""
 	switch formatterArgs.FunctionKey {
 	case "~":
 		fieldMap[logrus.FieldKeyFunc] = "Function"
@@ -129,7 +149,7 @@ func setFormatterFieldMap(formatterArgs Formatter) logrus.FieldMap {
 		fieldMap[logrus.FieldKeyFunc] = formatterArgs.FunctionKey
 	}
 
-	return fieldMap
+	return fieldMap, dirty
 }
 
 // Fields
