@@ -12,6 +12,13 @@ type TLMBreakdown struct {
 	Ctx context.Context
 }
 
+func Breakdown(ctx context.Context) TLMBreakdown {
+	if breakdown, ok := contextBreakdown(ctx); ok {
+		return breakdown
+	}
+	return TLMBreakdown{}
+}
+
 // This exists to allow updating a breakdown without exposing it's internals and causing a import cycle
 type tlmBreakdownContextWrapper struct {
 	Ctx context.Context
