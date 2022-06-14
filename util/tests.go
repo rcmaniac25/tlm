@@ -52,3 +52,25 @@ func AssertNotEqualf(t *testing.T, actual any, expected any, msg string, args ..
 		t.Fatalf("Expected \"%v\" to be different from actual value : %s", expected, fmt.Sprintf(msg, args...))
 	}
 }
+
+func AssertNoPanic(t *testing.T, test func(), msg string) {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				t.Fatalf("Test paniced: %s - %v", msg, err)
+			}
+		}()
+		test()
+	}()
+}
+
+func AssertPanic(t *testing.T, test func(), msg string) {
+	go func() {
+		defer func() {
+			if err := recover(); err == nil {
+				t.Fatalf("Test did not panic: %s", msg)
+			}
+		}()
+		test()
+	}()
+}
