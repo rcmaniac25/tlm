@@ -21,7 +21,7 @@ func TestLogging(t *testing.T) {
 	util.AssertNotEqual(t, log, nil, "log")
 
 	log.Info("Hello Tester")
-	util.AssertEqual(t, collector.GetMessage(), "Hello Tester", "log output")
+	util.AssertEqual(t, collector.GetMessage(0), "Hello Tester", "log output")
 }
 
 func TestLoggingNoInit(t *testing.T) {

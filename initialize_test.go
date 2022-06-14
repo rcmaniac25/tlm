@@ -40,5 +40,6 @@ func TestStartupLogging(t *testing.T) {
 	util.AssertNoError(t, err, "logging initialization should not have caused an error")
 
 	tlm.Log(ctx).Info("Hello Tester")
-	util.AssertEqual(t, collector.GetMessage(), "Hello Tester", "log output")
+	util.AssertEqual(t, collector.GetNumberLogs(), 1, "log count")
+	util.AssertEqual(t, collector.GetMessage(0), "Hello Tester", "log output")
 }

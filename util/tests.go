@@ -41,15 +41,15 @@ func AssertEqualf(t *testing.T, actual any, expected any, msg string, args ...an
 	}
 }
 
-func AssertNotEqual(t *testing.T, actual any, expected any, msg string) {
-	if actual == expected {
-		t.Fatalf("Expected \"%v\" to be different from actual value : %s", expected, msg)
+func AssertNotEqual(t *testing.T, value any, shouldntMatchThis any, msg string) {
+	if value == shouldntMatchThis {
+		t.Fatalf("Expected \"%v\" to be different from actual value : %s", shouldntMatchThis, msg)
 	}
 }
 
-func AssertNotEqualf(t *testing.T, actual any, expected any, msg string, args ...any) {
-	if actual == expected {
-		t.Fatalf("Expected \"%v\" to be different from actual value : %s", expected, fmt.Sprintf(msg, args...))
+func AssertNotEqualf(t *testing.T, value any, shouldntMatchThis any, msg string, args ...any) {
+	if value == shouldntMatchThis {
+		t.Fatalf("Expected \"%v\" to be different from actual value : %s", shouldntMatchThis, fmt.Sprintf(msg, args...))
 	}
 }
 
