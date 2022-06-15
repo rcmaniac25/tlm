@@ -54,7 +54,7 @@ func AssertNotEqualf(t *testing.T, value any, shouldntMatchThis any, msg string,
 }
 
 func AssertNoPanic(t *testing.T, test func(), msg string) {
-	go func() {
+	func() {
 		defer func() {
 			if err := recover(); err != nil {
 				t.Fatalf("Test paniced: %s - %v", msg, err)
@@ -65,7 +65,7 @@ func AssertNoPanic(t *testing.T, test func(), msg string) {
 }
 
 func AssertPanic(t *testing.T, test func(), msg string) {
-	go func() {
+	func() {
 		defer func() {
 			if err := recover(); err == nil {
 				t.Fatalf("Test did not panic: %s", msg)

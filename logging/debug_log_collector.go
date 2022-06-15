@@ -31,6 +31,7 @@ func (c *DebugLogCollector) SetupInitialization(init *TLMLoggingInitialization) 
 	init.Formatter.MessageKey = LogMessageKey
 	init.Formatter.LevelKey = LogLevelKey
 	init.Formatter.TimeKey = LogTimeKey
+	init.Formatter.TimeFormat = time.RFC3339Nano
 }
 
 func (c *DebugLogCollector) populateLogs() error {
@@ -122,9 +123,20 @@ func (c *DebugLogCollector) GetTime(logIndex int) time.Time {
 		return time.Time{}
 	}
 	if timeStr, ok := field.(string); ok {
-		if t, err := time.Parse(time.RFC3339, timeStr); err == nil {
+		if t, err := time.Parse(time.RFC3339Nano, timeStr); err == nil {
 			return t
 		}
 	}
 	return time.Time{}
+}
+
+func (c *DebugLogCollector) GetField(logIndex int, field string) (any, bool) {
+	switch field {
+	case LogMessageKey, LogLevelKey, LogTimeKey:
+		return nil, false
+	}
+	if f, err := c.getLogField(logIndex, field); err == nil {
+		return f, true
+	}
+	return nil, false
 }
