@@ -31,14 +31,38 @@ func AssertErrorf(t *testing.T, err error, msg string, args ...any) {
 
 func AssertEqual(t *testing.T, actual any, expected any, msg string) {
 	if actual != expected {
-		t.Fatalf("Expected \"%v\", Actual \"%v\" : %s", expected, actual, msg)
+		t.Fatalf("Expected \"%v\", Actual \"%v\" (%T) : %s", expected, actual, actual, msg)
 	}
 }
 
 func AssertEqualf(t *testing.T, actual any, expected any, msg string, args ...any) {
 	if actual != expected {
-		t.Fatalf("Expected \"%v\", Actual \"%v\" : %s", expected, actual, fmt.Sprintf(msg, args...))
+		t.Fatalf("Expected \"%v\", Actual \"%v\" (%T) : %s", expected, actual, actual, fmt.Sprintf(msg, args...))
 	}
+}
+
+func AssertEqualExists(t *testing.T, actual any, actualExists bool, expected any, msg string) {
+	if !actualExists {
+		t.Fatalf("Expected a value to exist : %s", msg)
+	}
+	AssertEqual(t, actual, expected, msg)
+}
+
+func AssertEqualExistsf(t *testing.T, actual any, actualExists bool, expected any, msg string, args ...any) {
+	if !actualExists {
+		t.Fatalf("Expected a value to exist : %s", fmt.Sprintf(msg, args...))
+	}
+	AssertEqualf(t, actual, expected, msg, args...)
+}
+
+func AssertEqualExistsFunc(t *testing.T, getValue func() (any, bool), expected any, msg string) {
+	actual, actualExists := getValue()
+	AssertEqualExists(t, actual, actualExists, expected, msg)
+}
+
+func AssertEqualExistsFuncf(t *testing.T, getValue func() (any, bool), expected any, msg string, args ...any) {
+	actual, actualExists := getValue()
+	AssertEqualExistsf(t, actual, actualExists, expected, msg, args...)
 }
 
 func AssertNotEqual(t *testing.T, value any, shouldntMatchThis any, msg string) {

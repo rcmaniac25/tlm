@@ -52,6 +52,11 @@ func (c *DebugLogCollector) populateLogs() error {
 	}
 }
 
+func (c *DebugLogCollector) Clear() {
+	c.populateLogs()
+	c.logs = make([]map[string]any, 0)
+}
+
 func (c *DebugLogCollector) GetNumberLogs() int {
 	if err := c.populateLogs(); err != nil {
 		return -1
@@ -102,7 +107,7 @@ func (c *DebugLogCollector) GetLogLevel(logIndex int) LogLevel {
 		return DebugLevel
 	case "info":
 		return InfoLevel
-	case "warn":
+	case "warning":
 		return WarnLevel
 	case "error":
 		return ErrorLevel
@@ -139,4 +144,10 @@ func (c *DebugLogCollector) GetField(logIndex int, field string) (any, bool) {
 		return f, true
 	}
 	return nil, false
+}
+
+func (c *DebugLogCollector) GetFieldFunc(logIndex int, field string) func() (any, bool) {
+	return func() (any, bool) {
+		return c.GetField(logIndex, field)
+	}
 }
