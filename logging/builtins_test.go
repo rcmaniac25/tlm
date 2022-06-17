@@ -285,6 +285,44 @@ func TestLoggingFunctions(t *testing.T) {
 				level: logging.ErrorLevel,
 			},
 		},
+		{
+			name: "Panic",
+			args: args{
+				logFunc:    func(logger logging.Logger) { logger.Panic("PanicTest", 123, float64(10.123), "Value") },
+				fieldValue: "PanicField",
+				willPanic:  true,
+			},
+			expected: expected{
+				msg:   "PanicTest123 10.123Value",
+				level: logging.PanicLevel,
+			},
+		},
+		{
+			name: "Panicf",
+			args: args{
+				logFunc: func(logger logging.Logger) {
+					logger.Panicf("%s-%d--%.3f---%s", "PanicTest", 123, float64(10.123), "Value")
+				},
+				fieldValue: "PanicField",
+				willPanic:  true,
+			},
+			expected: expected{
+				msg:   "PanicTest-123--10.123---Value",
+				level: logging.PanicLevel,
+			},
+		},
+		{
+			name: "Panicln",
+			args: args{
+				logFunc:    func(logger logging.Logger) { logger.Panicln("PanicTest", 123, float64(10.123), "Value") },
+				fieldValue: "PanicField",
+				willPanic:  true,
+			},
+			expected: expected{
+				msg:   "PanicTest 123 10.123 Value",
+				level: logging.PanicLevel,
+			},
+		},
 		//TODO
 	}
 	for _, logger := range getLoggers() {

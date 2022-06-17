@@ -113,9 +113,9 @@ func (s *selfReferentialLogger) Errorln(args ...any) {
 	s.LoggerImpl.Errorln(args...)
 }
 
-func (n *nullLoggerType) Panicf(format string, args ...any) {}
-func (n *nullLoggerType) Panic(args ...any)                 {}
-func (n *nullLoggerType) Panicln(args ...any)               {}
+func (n *nullLoggerType) Panicf(format string, args ...any) { panic("Panicf") }
+func (n *nullLoggerType) Panic(args ...any)                 { panic("Panic") }
+func (n *nullLoggerType) Panicln(args ...any)               { panic("Panicln") }
 func (s *selfReferentialLogger) Panicf(format string, args ...any) {
 	s.LoggerImpl.Panicf(format, args...)
 }
