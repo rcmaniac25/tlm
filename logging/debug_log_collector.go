@@ -17,7 +17,8 @@ const (
 type DebugLogCollector struct {
 	buffer bytes.Buffer
 
-	logs []map[string]any
+	logs      []map[string]any
+	exitcodes []int
 }
 
 func NewDebugLogCollector() *DebugLogCollector {
@@ -32,6 +33,10 @@ func (c *DebugLogCollector) SetupInitialization(init *TLMLoggingInitialization) 
 	init.Formatter.LevelKey = LogLevelKey
 	init.Formatter.TimeKey = LogTimeKey
 	init.Formatter.TimeFormat = time.RFC3339Nano
+}
+
+func (c *DebugLogCollector) OnExitCode(exitcode int) {
+	c.exitcodes = append(c.exitcodes, exitcode)
 }
 
 func (c *DebugLogCollector) populateLogs() error {
@@ -55,6 +60,7 @@ func (c *DebugLogCollector) populateLogs() error {
 func (c *DebugLogCollector) Clear() {
 	c.populateLogs()
 	c.logs = make([]map[string]any, 0)
+	c.exitcodes = make([]int, 0)
 }
 
 func (c *DebugLogCollector) GetNumberLogs() int {
@@ -149,5 +155,62 @@ func (c *DebugLogCollector) GetField(logIndex int, field string) (any, bool) {
 func (c *DebugLogCollector) GetFieldFunc(logIndex int, field string) func() (any, bool) {
 	return func() (any, bool) {
 		return c.GetField(logIndex, field)
+	}
+}
+
+func (c *DebugLogCollector) GetFatalExitcode(logIndex int) (int, bool) {
+	if logIndex < 0 {
+		return -1, false
+	}
+
+	if logIndex >= len(c.logs) {
+		if err := c.populateLogs(); err != nil {
+			return -2, false
+		}
+	}
+
+	if logIndex >= len(c.logs) {
+		return -3, false
+	}
+
+	// This attempts to sync fatal function calls to error codes
+	type exitcodesync struct {
+		valid bool
+		value int
+	}
+	errcodeIndex := 0
+	var codes []exitcodesync
+	for i, log := range c.logs {
+		if i > logIndex {
+			// No need to keep going if we already reached the index
+			break
+		}
+		if errcodeIndex >= len(c.exitcodes) {
+			// No need to keep going if there are no more codes to populate
+			break
+		}
+		if log[LogLevelKey] != "fatal" {
+			codes = append(codes, exitcodesync{
+				valid: false,
+				value: 0,
+			})
+			continue
+		}
+
+		codes = append(codes, exitcodesync{
+			valid: true,
+			value: c.exitcodes[errcodeIndex],
+		})
+		errcodeIndex++
+	}
+	if logIndex >= len(codes) {
+		return -4, false
+	}
+	return codes[logIndex].value, codes[logIndex].valid
+}
+
+func (c *DebugLogCollector) GetFatalExitcodeFunc(logIndex int) func() (any, bool) {
+	return func() (any, bool) {
+		return c.GetFatalExitcode(logIndex)
 	}
 }

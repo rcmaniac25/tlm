@@ -2,6 +2,7 @@ package logging
 
 import (
 	"context"
+	"os"
 
 	"github.com/rcmaniac25/tlm/util"
 )
@@ -39,6 +40,16 @@ func (s *selfReferentialLogger) updateLogger(update func() Logger) Logger {
 		return refLogger
 	}
 	return s // Simply ignore the field since we got an invalid type...
+}
+
+func (s *selfReferentialLogger) TestingSetFatalExitFunction(exitHandler func(int)) bool {
+	type InternalTestingExitHandler interface {
+		TestingSetFatalExitFunction(exitHandler func(int)) bool
+	}
+	if v, ok := s.LoggerImpl.(InternalTestingExitHandler); ok {
+		return v.TestingSetFatalExitFunction(exitHandler)
+	}
+	return false
 }
 
 // All the builtin functions
@@ -126,9 +137,9 @@ func (s *selfReferentialLogger) Panicln(args ...any) {
 	s.LoggerImpl.Panicln(args...)
 }
 
-func (n *nullLoggerType) Fatalf(format string, args ...any) {}
-func (n *nullLoggerType) Fatal(args ...any)                 {}
-func (n *nullLoggerType) Fatalln(args ...any)               {}
+func (n *nullLoggerType) Fatalf(format string, args ...any) { os.Exit(1) }
+func (n *nullLoggerType) Fatal(args ...any)                 { os.Exit(1) }
+func (n *nullLoggerType) Fatalln(args ...any)               { os.Exit(1) }
 func (s *selfReferentialLogger) Fatalf(format string, args ...any) {
 	s.LoggerImpl.Fatalf(format, args...)
 }

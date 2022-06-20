@@ -11,26 +11,27 @@ import (
 )
 
 type BuiltinLogger struct {
-	Name      string
-	Logger    logging.Logger
-	Collector *logging.DebugLogCollector
+	Name             string
+	Logger           logging.Logger
+	Collector        *logging.DebugLogCollector
+	FatalLogsHandled bool
 }
 
 func getLoggers() []BuiltinLogger {
 	loggers := []struct {
 		name         string
-		logGenerated func() (logging.Logger, *logging.DebugLogCollector)
+		logGenerated func() (logging.Logger, *logging.DebugLogCollector, bool)
 		logMapper    func(logging.LogLevel) string
 	}{
 		{
 			name: "Null Logger",
-			logGenerated: func() (logging.Logger, *logging.DebugLogCollector) {
-				return tlm.Log(context.Background()), nil
+			logGenerated: func() (logging.Logger, *logging.DebugLogCollector, bool) {
+				return tlm.Log(context.Background()), nil, false
 			},
 		},
 		{
 			name: "Logrus",
-			logGenerated: func() (logging.Logger, *logging.DebugLogCollector) {
+			logGenerated: func() (logging.Logger, *logging.DebugLogCollector, bool) {
 				inits := new(tlm.TLMInitialization)
 				inits.Logging = new(logging.TLMLoggingInitialization)
 
@@ -40,10 +41,20 @@ func getLoggers() []BuiltinLogger {
 
 				ctx, err := tlm.Startup(inits)
 				if err != nil {
-					return nil, nil
+					return nil, nil, false
 				}
 
-				return tlm.Log(ctx), collector
+				logger := tlm.Log(ctx)
+
+				exitHandlerSet := false
+				type InternalTestingExitHandler interface {
+					TestingSetFatalExitFunction(exitHandler func(int)) bool
+				}
+				if v, ok := logger.(InternalTestingExitHandler); ok {
+					exitHandlerSet = v.TestingSetFatalExitFunction(collector.OnExitCode)
+				}
+
+				return logger, collector, exitHandlerSet
 			},
 			logMapper: func(tlmLogLevel logging.LogLevel) string {
 				if tlmLogLevel == logging.WarnLevel {
@@ -55,11 +66,12 @@ func getLoggers() []BuiltinLogger {
 	}
 	results := make([]BuiltinLogger, 0)
 	for _, logger := range loggers {
-		log, collector := logger.logGenerated()
+		log, collector, exitHandlerSet := logger.logGenerated()
 		results = append(results, BuiltinLogger{
-			Name:      logger.name,
-			Logger:    log,
-			Collector: collector,
+			Name:             logger.name,
+			Logger:           log,
+			Collector:        collector,
+			FatalLogsHandled: exitHandlerSet,
 		})
 	}
 	return results
@@ -323,12 +335,57 @@ func TestLoggingFunctions(t *testing.T) {
 				level: logging.PanicLevel,
 			},
 		},
-		//TODO
+		{
+			name: "Fatal",
+			args: args{
+				logFunc:    func(logger logging.Logger) { logger.Fatal("FatalTest", 123, float64(10.123), "Value") },
+				fieldValue: "FatalField",
+				willPanic:  false,
+			},
+			expected: expected{
+				msg:   "FatalTest123 10.123Value",
+				level: logging.FatalLevel,
+			},
+		},
+		{
+			name: "Fatalf",
+			args: args{
+				logFunc: func(logger logging.Logger) {
+					logger.Fatalf("%s-%d--%.3f---%s", "FatalTest", 123, float64(10.123), "Value")
+				},
+				fieldValue: "FatalField",
+				willPanic:  false,
+			},
+			expected: expected{
+				msg:   "FatalTest-123--10.123---Value",
+				level: logging.FatalLevel,
+			},
+		},
+		{
+			name: "Fatalln",
+			args: args{
+				logFunc:    func(logger logging.Logger) { logger.Fatalln("FatalTest", 123, float64(10.123), "Value") },
+				fieldValue: "FatalField",
+				willPanic:  false,
+			},
+			expected: expected{
+				msg:   "FatalTest 123 10.123 Value",
+				level: logging.FatalLevel,
+			},
+		},
 	}
 	for _, logger := range getLoggers() {
 		t.Run(logger.Name, func(t *testing.T) {
+			if !logger.FatalLogsHandled {
+				t.Log("<<<<< Can't test fatal >>>>>")
+			}
 			for _, log := range tests {
 				t.Run(log.name, func(t *testing.T) {
+					if log.expected.level == logging.FatalLevel && !logger.FatalLogsHandled {
+						t.SkipNow()
+						return
+					}
+
 					defer func() {
 						if logger.Collector != nil {
 							logger.Collector.Clear()
@@ -358,6 +415,11 @@ func TestLoggingFunctions(t *testing.T) {
 
 						util.AssertEqual(t, logger.Collector.GetLogLevel(0), log.expected.level, "level 0")
 						util.AssertEqual(t, logger.Collector.GetLogLevel(1), log.expected.level, "level 1")
+
+						if log.expected.level == logging.FatalLevel && logger.FatalLogsHandled {
+							util.AssertEqualExistsFunc(t, logger.Collector.GetFatalExitcodeFunc(0), 1, "fatal exit code 0")
+							util.AssertEqualExistsFunc(t, logger.Collector.GetFatalExitcodeFunc(1), 1, "fatal exit code 1")
+						}
 
 						util.AssertEqualExistsFunc(t, logger.Collector.GetFieldFunc(1, "myField"), log.args.fieldValue, "field")
 					}
