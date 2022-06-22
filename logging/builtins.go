@@ -11,6 +11,10 @@ type nullLoggerType struct{}
 
 var NullLogger = nullLoggerType{}
 
+func (n *nullLoggerType) Context() context.Context {
+	return context.Background()
+}
+
 // This basically creates a reference loop. We want to be able to chain log, metric, etc. updates.
 // In order to do that, we need access to TLM's breakdown... which is stored in the context.
 // So we need to store the context that contains the logger, in the logger
@@ -44,10 +48,10 @@ func (s *selfReferentialLogger) updateLogger(update func() Logger) Logger {
 
 func (s *selfReferentialLogger) TestingSetFatalExitFunction(exitHandler func(int)) bool {
 	type InternalTestingExitHandler interface {
-		TestingSetFatalExitFunction(exitHandler func(int)) bool
+		testExitFunc(exitHandler func(int)) bool
 	}
 	if v, ok := s.LoggerImpl.(InternalTestingExitHandler); ok {
-		return v.TestingSetFatalExitFunction(exitHandler)
+		return v.testExitFunc(exitHandler)
 	}
 	return false
 }

@@ -12,7 +12,7 @@ import (
 
 type BuiltinLogger struct {
 	Name             string
-	Logger           logging.Logger
+	Logger           logging.TLMLogger
 	Collector        *logging.DebugLogCollector
 	FatalLogsHandled bool
 }
@@ -20,18 +20,18 @@ type BuiltinLogger struct {
 func getLoggers() []BuiltinLogger {
 	loggers := []struct {
 		name         string
-		logGenerated func() (logging.Logger, *logging.DebugLogCollector, bool)
+		logGenerated func() (logging.TLMLogger, *logging.DebugLogCollector, bool)
 		logMapper    func(logging.LogLevel) string
 	}{
 		{
 			name: "Null Logger",
-			logGenerated: func() (logging.Logger, *logging.DebugLogCollector, bool) {
+			logGenerated: func() (logging.TLMLogger, *logging.DebugLogCollector, bool) {
 				return tlm.Log(context.Background()), nil, false
 			},
 		},
 		{
 			name: "Logrus",
-			logGenerated: func() (logging.Logger, *logging.DebugLogCollector, bool) {
+			logGenerated: func() (logging.TLMLogger, *logging.DebugLogCollector, bool) {
 				inits := new(tlm.TLMInitialization)
 				inits.Logging = new(logging.TLMLoggingInitialization)
 
@@ -75,6 +75,23 @@ func getLoggers() []BuiltinLogger {
 		})
 	}
 	return results
+}
+
+func TestContext(t *testing.T) {
+	for _, logItem := range getLoggers() {
+		t.Run(logItem.Name, func(t *testing.T) {
+			if logItem.Collector == nil {
+				// We don't actually use the collector here, but if there's no collector then it's the null logger
+				t.SkipNow()
+				return
+			}
+			ctx := logItem.Logger.Context()
+			util.AssertNotEqual(t, ctx, nil, "context")
+
+			ctxLog := tlm.Log(ctx)
+			util.AssertEqual(t, ctxLog, logItem.Logger, "logger")
+		})
+	}
 }
 
 func TestWithField(t *testing.T) {

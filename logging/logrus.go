@@ -153,7 +153,7 @@ func setFormatterFieldMap(formatterArgs Formatter) (logrus.FieldMap, bool) {
 }
 
 // Hidden-function used for testing
-func (r *LogrusImpl) TestingSetFatalExitFunction(exitHandler func(int)) bool {
+func (r *LogrusImpl) testExitFunc(exitHandler func(int)) bool {
 	if r.Entry != nil {
 		return false
 	}

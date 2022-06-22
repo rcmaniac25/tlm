@@ -6,7 +6,7 @@ import (
 	"github.com/rcmaniac25/tlm/logging"
 )
 
-func Log(ctx context.Context) logging.Logger {
+func Log(ctx context.Context) logging.TLMLogger {
 	if breakdown, ok := contextBreakdown(ctx); ok && breakdown.Log != nil {
 		return breakdown.Log
 	}
