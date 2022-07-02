@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -38,6 +39,18 @@ func AssertEqual(t *testing.T, actual any, expected any, msg string) {
 func AssertEqualf(t *testing.T, actual any, expected any, msg string, args ...any) {
 	if actual != expected {
 		t.Fatalf("Expected \"%v\", Actual \"%v\" (%T) : %s", expected, actual, actual, fmt.Sprintf(msg, args...))
+	}
+}
+
+func AssertContains(t *testing.T, value, substr string, msg string) {
+	if !strings.Contains(value, substr) {
+		t.Fatalf("Expected \"%v\" to contain \"%v\" : %s", value, substr, msg)
+	}
+}
+
+func AssertContainsf(t *testing.T, value, substr string, msg string, args ...any) {
+	if !strings.Contains(value, substr) {
+		t.Fatalf("Expected \"%v\" to contain \"%v\" : %s", value, substr, fmt.Sprintf(msg, args...))
 	}
 }
 

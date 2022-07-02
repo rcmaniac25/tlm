@@ -10,6 +10,16 @@ import (
 	"github.com/rcmaniac25/tlm/util"
 )
 
+func ReplaceExitHandler(logger logging.Logger, exitHandler func(int)) bool {
+	type TLMInternalTestingExitHandler interface {
+		TestingSetFatalExitFunction(exitHandler func(int)) bool
+	}
+	if v, ok := logger.(TLMInternalTestingExitHandler); ok {
+		return v.TestingSetFatalExitFunction(exitHandler)
+	}
+	return false
+}
+
 type BuiltinLogger struct {
 	Name             string
 	Logger           logging.TLMLogger
@@ -45,14 +55,7 @@ func getLoggers() []BuiltinLogger {
 				}
 
 				logger := tlm.Log(ctx)
-
-				exitHandlerSet := false
-				type InternalTestingExitHandler interface {
-					TestingSetFatalExitFunction(exitHandler func(int)) bool
-				}
-				if v, ok := logger.(InternalTestingExitHandler); ok {
-					exitHandlerSet = v.TestingSetFatalExitFunction(collector.OnExitCode)
-				}
+				exitHandlerSet := ReplaceExitHandler(logger, collector.OnExitCode)
 
 				return logger, collector, exitHandlerSet
 			},
