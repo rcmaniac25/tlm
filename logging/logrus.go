@@ -116,7 +116,7 @@ func setFormatterFieldMap(formatterArgs Formatter) (logrus.FieldMap, bool) {
 	switch formatterArgs.TimeKey {
 	// "-" will skip the time and is handled outside of this function
 	case "~":
-		fieldMap[logrus.FieldKeyTime] = "Time"
+		fieldMap[logrus.FieldKeyTime] = "time"
 	case "":
 	default:
 		fieldMap[logrus.FieldKeyTime] = formatterArgs.TimeKey
@@ -125,7 +125,7 @@ func setFormatterFieldMap(formatterArgs Formatter) (logrus.FieldMap, bool) {
 	dirty = dirty || formatterArgs.MessageKey != ""
 	switch formatterArgs.MessageKey {
 	case "~":
-		fieldMap[logrus.FieldKeyMsg] = "Message"
+		fieldMap[logrus.FieldKeyMsg] = "message"
 	case "":
 	default:
 		fieldMap[logrus.FieldKeyMsg] = formatterArgs.MessageKey
@@ -134,7 +134,7 @@ func setFormatterFieldMap(formatterArgs Formatter) (logrus.FieldMap, bool) {
 	dirty = dirty || formatterArgs.LevelKey != ""
 	switch formatterArgs.LevelKey {
 	case "~":
-		fieldMap[logrus.FieldKeyLevel] = "Level"
+		fieldMap[logrus.FieldKeyLevel] = "level"
 	case "":
 	default:
 		fieldMap[logrus.FieldKeyLevel] = formatterArgs.LevelKey
@@ -143,7 +143,7 @@ func setFormatterFieldMap(formatterArgs Formatter) (logrus.FieldMap, bool) {
 	dirty = dirty || formatterArgs.FunctionKey != ""
 	switch formatterArgs.FunctionKey {
 	case "~":
-		fieldMap[logrus.FieldKeyFunc] = "Function"
+		fieldMap[logrus.FieldKeyFunc] = "function"
 	case "":
 	default:
 		fieldMap[logrus.FieldKeyFunc] = formatterArgs.FunctionKey

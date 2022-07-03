@@ -54,6 +54,18 @@ func AssertContainsf(t *testing.T, value, substr string, msg string, args ...any
 	}
 }
 
+func AssertNotContains(t *testing.T, value, substr string, msg string) {
+	if strings.Contains(value, substr) {
+		t.Fatalf("Didn't expect \"%v\" to contain \"%v\" : %s", value, substr, msg)
+	}
+}
+
+func AssertNotContainsf(t *testing.T, value, substr string, msg string, args ...any) {
+	if strings.Contains(value, substr) {
+		t.Fatalf("Didn't expect \"%v\" to contain \"%v\" : %s", value, substr, fmt.Sprintf(msg, args...))
+	}
+}
+
 func AssertEqualExists(t *testing.T, actual any, actualExists bool, expected any, msg string) {
 	if !actualExists {
 		t.Fatalf("Expected a value to exist : %s", msg)
