@@ -1,9 +1,23 @@
 package logging
 
 import (
+	"errors"
+	"runtime"
+	"strings"
+
 	"github.com/rcmaniac25/tlm/util"
 
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	LoggingPackageName = "github.com/rcmaniac25/tlm/logging"
+	LogrusPackageName  = "github.com/sirupsen/logrus"
+
+	callerMinFrameSkip = 6
+
+	// From logrus as no better amount has really been identified
+	maxFrameCount = 25
 )
 
 type LogrusImpl struct {
@@ -27,8 +41,10 @@ func InitLogrus(args *TLMLoggingInitialization) (Logger, error) {
 	if formatter, ok := getFormatter(args.Formatter, logger.Log.Formatter); ok {
 		logger.Log.Formatter = formatter
 	}
-
-	//TODO
+	if args.Formatter.FunctionKey != "" && args.Formatter.FunctionKey != "-" {
+		logger.Log.SetReportCaller(true)
+		logger.Log.AddHook(logger)
+	}
 
 	return logger, nil
 }
@@ -150,6 +166,66 @@ func setFormatterFieldMap(formatterArgs Formatter) (logrus.FieldMap, bool) {
 	}
 
 	return fieldMap, dirty
+}
+
+// This is a log hook to replace the call frame so that the logger is called, it gets what actually called the logger instead of the TLM
+func (l *LogrusImpl) Levels() []logrus.Level {
+	levels := []logrus.Level{
+		logrus.DebugLevel,
+		logrus.InfoLevel,
+		logrus.WarnLevel,
+		logrus.ErrorLevel,
+		logrus.PanicLevel,
+		logrus.FatalLevel,
+	}
+	return levels
+}
+
+// Taken from Logrus as no better option has been identified
+func getPackageName(f string) string {
+	for {
+		lastPeriod := strings.LastIndex(f, ".")
+		lastSlash := strings.LastIndex(f, "/")
+		if lastPeriod > lastSlash {
+			f = f[:lastPeriod]
+		} else {
+			break
+		}
+	}
+
+	return f
+}
+
+func (l LogrusImpl) Fire(ent *logrus.Entry) error {
+	if !ent.HasCaller() {
+		return nil
+	}
+
+	// Try to save some execution time
+	switch getPackageName(ent.Caller.Function) {
+	case LoggingPackageName:
+	case LogrusPackageName:
+	default:
+		// Not from logrus or logging framework... we're probably fine
+		return nil
+	}
+
+	// Based off Logrus as it's pretty compact in functionality
+	pcs := make([]uintptr, maxFrameCount)
+	depth := runtime.Callers(callerMinFrameSkip, pcs)
+	frames := runtime.CallersFrames(pcs[:depth])
+
+	for f, again := frames.Next(); again; f, again = frames.Next() {
+		pkg := getPackageName(f.Function)
+
+		if pkg != LoggingPackageName && pkg != LogrusPackageName {
+			ent.Caller = &f
+			return nil
+		}
+	}
+
+	// This simply writes to stderr and then uses the existing caller
+	return errors.New("could not find caller")
 }
 
 // Hidden-function used for testing

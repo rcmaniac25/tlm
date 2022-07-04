@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 	"testing"
@@ -24,6 +25,7 @@ func createLoggerExt(args *logging.TLMLoggingInitialization, exitHandler func(in
 		panic(err.Error())
 	}
 	if exitHandler != nil {
+		//TODO: figure out why this doesn't work...
 		if _, ok := logger.(*logging.LogrusImpl); !ok {
 			panic("Got the wrong logger type?")
 		}
@@ -285,11 +287,58 @@ func SplitAndOrderOutput(log string, format logging.Formatter) (newLog string, l
 	return "", ""
 }
 
+func GetFileAndFunctionPlaceholder(functionName string) func(string) string {
+	// This replaces file and function names with placeholders because a change to a log file or some other thing could break the test
+	replaceText := func(log, fieldName, placeholder string) string {
+		field := fmt.Sprintf("%s=", fieldName)
+		idx := strings.Index(log, field)
+		if idx >= 0 {
+			hasQuotes := log[idx+len(field)] == '"'
+			old := ""
+			if hasQuotes {
+				s := idx + len(field) + 1
+				e := strings.Index(log[s:], "\"") + s
+				old = log[s:e]
+			} else {
+				s := idx + len(field)
+				e := strings.Index(log[s:], " ") + s
+				old = log[s:e]
+			}
+			return strings.Replace(log, old, placeholder, 1)
+		}
+		return log
+	}
+	replaceJson := func(log, fieldName, placeholder string) string {
+		field := fmt.Sprintf("\"%s\":\"", fieldName)
+		idx := strings.Index(log, field)
+		if idx >= 0 {
+			s := idx + len(field)
+			e := strings.Index(log[s:], "\"") + s
+			old := log[s:e]
+			return strings.Replace(log, old, placeholder, 1)
+		}
+		return log
+	}
+
+	return func(log string) string {
+		// File
+		log = replaceText(log, "file", "fileplaceholder")
+		log = replaceJson(log, "file", "fileplaceholder")
+
+		// Function
+		log = replaceText(log, functionName, "funcplaceholder")
+		log = replaceJson(log, functionName, "funcplaceholder")
+
+		return log
+	}
+}
+
 func TestFormats(t *testing.T) {
 	tests := []struct {
-		name     string
-		args     logging.Formatter
-		expected map[logging.FormatterType]string
+		name        string
+		args        logging.Formatter
+		postLogFunc func(string) string
+		expected    map[logging.FormatterType]string
 	}{
 		{
 			name: "Default",
@@ -329,7 +378,78 @@ func TestFormats(t *testing.T) {
 				logging.JsonFormat: "{\"level\":\"info\",\"msg\":\"Hello World\",\"testInt\":128,\"testStr\":\"hello\",\"time\":\"logtimeplaceholder\"}\n",
 			},
 		},
-		//TODO
+		{
+			name: "Time Format",
+			args: logging.Formatter{
+				TimeFormat: time.RFC822, // The testing compares parsed dates, so there isn't really a reason to ensure the format was correct, as it would just error when parsing
+			},
+			expected: map[logging.FormatterType]string{
+				logging.TextFormat: "level=info msg=\"Hello World\" testInt=128 testStr=hello time=\"logtimeplaceholder\"\n",
+				logging.JsonFormat: "{\"level\":\"info\",\"msg\":\"Hello World\",\"testInt\":128,\"testStr\":\"hello\",\"time\":\"logtimeplaceholder\"}\n",
+			},
+		},
+		{
+			name: "Special Message",
+			args: logging.Formatter{
+				MessageKey: "hearsey",
+			},
+			expected: map[logging.FormatterType]string{
+				logging.TextFormat: "hearsey=\"Hello World\" level=info testInt=128 testStr=hello time=\"logtimeplaceholder\"\n",
+				logging.JsonFormat: "{\"hearsey\":\"Hello World\",\"level\":\"info\",\"testInt\":128,\"testStr\":\"hello\",\"time\":\"logtimeplaceholder\"}\n",
+			},
+		},
+		{
+			name: "Message Key",
+			args: logging.Formatter{
+				MessageKey: "~",
+			},
+			expected: map[logging.FormatterType]string{
+				logging.TextFormat: "level=info message=\"Hello World\" testInt=128 testStr=hello time=\"logtimeplaceholder\"\n",
+				logging.JsonFormat: "{\"level\":\"info\",\"message\":\"Hello World\",\"testInt\":128,\"testStr\":\"hello\",\"time\":\"logtimeplaceholder\"}\n",
+			},
+		},
+		{
+			name: "Special Level",
+			args: logging.Formatter{
+				LevelKey: "bubbleScale",
+			},
+			expected: map[logging.FormatterType]string{
+				logging.TextFormat: "bubbleScale=info msg=\"Hello World\" testInt=128 testStr=hello time=\"logtimeplaceholder\"\n",
+				logging.JsonFormat: "{\"bubbleScale\":\"info\",\"msg\":\"Hello World\",\"testInt\":128,\"testStr\":\"hello\",\"time\":\"logtimeplaceholder\"}\n",
+			},
+		},
+		{
+			name: "Level Key",
+			args: logging.Formatter{
+				LevelKey: "~",
+			},
+			expected: map[logging.FormatterType]string{
+				logging.TextFormat: "level=info msg=\"Hello World\" testInt=128 testStr=hello time=\"logtimeplaceholder\"\n",
+				logging.JsonFormat: "{\"level\":\"info\",\"msg\":\"Hello World\",\"testInt\":128,\"testStr\":\"hello\",\"time\":\"logtimeplaceholder\"}\n",
+			},
+		},
+		{
+			name: "Special Function",
+			args: logging.Formatter{
+				FunctionKey: "pickle",
+			},
+			postLogFunc: GetFileAndFunctionPlaceholder("pickle"),
+			expected: map[logging.FormatterType]string{
+				logging.TextFormat: "file=\"fileplaceholder\" level=info msg=\"Hello World\" pickle=funcplaceholder testInt=128 testStr=hello time=\"logtimeplaceholder\"\n",
+				logging.JsonFormat: "{\"file\":\"fileplaceholder\",\"level\":\"info\",\"msg\":\"Hello World\",\"pickle\":\"funcplaceholder\",\"testInt\":128,\"testStr\":\"hello\",\"time\":\"logtimeplaceholder\"}\n",
+			},
+		},
+		{
+			name: "Function Key",
+			args: logging.Formatter{
+				FunctionKey: "~",
+			},
+			postLogFunc: GetFileAndFunctionPlaceholder("function"),
+			expected: map[logging.FormatterType]string{
+				logging.TextFormat: "file=\"fileplaceholder\" function=funcplaceholder level=info msg=\"Hello World\" testInt=128 testStr=hello time=\"logtimeplaceholder\"\n",
+				logging.JsonFormat: "{\"file\":\"fileplaceholder\",\"function\":\"funcplaceholder\",\"level\":\"info\",\"msg\":\"Hello World\",\"testInt\":128,\"testStr\":\"hello\",\"time\":\"logtimeplaceholder\"}\n",
+			},
+		},
 	}
 	for formatType := logging.TextFormat; formatType <= logging.JsonFormat; formatType++ {
 		t.Run(fmt.Sprintf("Format-%s", formatType), func(t *testing.T) {
@@ -353,10 +473,30 @@ func TestFormats(t *testing.T) {
 					util.AssertEqual(t, ok, true, "expected log output")
 
 					newLog, parsedLogTime := SplitAndOrderOutput(buffer.String(), logArgs.Formatter)
+					if testFormat.postLogFunc != nil {
+						newLog = testFormat.postLogFunc(newLog)
+					}
 					AssertTime(t, logArgs.Formatter.TimeKey, logArgs.Formatter.TimeFormat, parsedLogTime, newLog, logTime)
 					util.AssertEqual(t, newLog, expected, "contents")
 				})
 			}
 		})
 	}
+}
+
+func TestSanity(t *testing.T) {
+	// This exists as a sanity check for some constants
+
+	logArgs := new(logging.TLMLoggingInitialization)
+	logger, _ := createLogger(logArgs)
+
+	// For printing out the caller of a log, various packages do dynamic calculation. This is fine for many but times time and resources and best done in a Once or on init
+	// As the result is always the same (unless you fork the repo), use a const instead. If you fork, this test will fail and you need to update LoggingPackageName
+	// If this becomes big enough and has many forks, dynamic parsing can be looked into
+	lrus, ok := logger.(*logging.LogrusImpl)
+	util.AssertEqual(t, ok, true, "LogrusImpl")
+	util.AssertEqual(t, reflect.TypeOf(*lrus).PkgPath(), logging.LoggingPackageName, "package name")
+
+	// We're testing Logrus... if it's something other then Logrus, then this will fail
+	util.AssertEqual(t, reflect.TypeOf(*lrus.Log).PkgPath(), logging.LogrusPackageName, "logrus package name")
 }
