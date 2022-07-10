@@ -28,6 +28,9 @@ func InitLogging(args *TLMLoggingInitialization) (TLMLogger, error) {
 		} else {
 			err = fmt.Errorf("custom type could is not registered: %s", args.CustomeType)
 		}
+		if err == nil && log == nil {
+			err = fmt.Errorf("custom type did not initialize a logger: %s", args.CustomeType)
+		}
 	case LogrusLogType:
 		log, err = InitLogrus(args)
 	default:
